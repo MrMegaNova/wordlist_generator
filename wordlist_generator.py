@@ -1,59 +1,55 @@
-import argparse
 import itertools
+import argparse
 import os
 
+def generate_combinations(word, max_upper, uppercase_letters):
+    num_combinations = 0
+    with open("output.txt", "w") as f:
+        for i in range(max_upper + 1):
+            for combination in itertools.combinations(uppercase_letters, i):
+                for variation in itertools.product([False, True], repeat=len(word)):
+                    new_word = ''
+                    for j, letter in enumerate(word):
+                        if letter.lower() in uppercase_letters:
+                            if letter.lower() in combination:
+                                new_word += letter.upper()
+                            else:
+                                new_word += letter.lower()
+                        elif letter.lower() == 'o':
+                            if variation[j]:
+                                new_word += '0'
+                            else:
+                                new_word += 'o'
+                        elif letter.lower() == 'a':
+                            if variation[j]:
+                                new_word += '@'
+                            else:
+                                new_word += 'a'
+                        else:
+                            new_word += letter
+                        
+                    f.write(new_word + '\n')
+                    num_combinations += 1
 
-def generate_combinations(word, uppercase, max_upper):
-    possible_cases = []
-    for letter in word:
-        if letter.lower() in uppercase:
-            possible_cases.append([letter.lower(), letter.upper()])
-        elif letter.lower() == 'o':
-            possible_cases.append(['o', 'O', '0'])
-        elif letter.lower() == 'a':
-            possible_cases.append(['a', 'A', '@'])
-        else:
-            possible_cases.append([letter.lower()])
-
-    combinations = list(itertools.product(*possible_cases))
-    filtered_combinations = []
-    for combination in combinations:
-        if max_upper >= combination.count(''.join(filter(str.isupper, combination))):
-            filtered_combinations.append(''.join(combination))
-    return filtered_combinations
-
-
-def write_to_file(file_path, contents):
-    with open(file_path, 'w') as f:
-        f.write(contents)
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Générer toutes les combinaisons possibles de la chaine de caractère donnée.')
-    parser.add_argument('-w', '--word', type=str, help='la chaine de caractère pour générer les combinaisons', required=True)
-    parser.add_argument('-u', '--uppercase', type=str, help='les lettres qui peuvent être en majuscule', default='')
-    parser.add_argument('-m', '--max-upper', type=int, help='le nombre maximum de lettres en majuscule', default=0)
-    parser.add_argument('-o', '--output', type=str, help='le fichier de destination pour écrire les combinaisons', default='output.txt')
-
-    args = parser.parse_args()
-
-    if os.path.exists(args.output):
-        while True:
-            answer = input(f"Le fichier {args.output} existe déjà. Voulez-vous continuer et supprimer le fichier existant ? (y/n) ")
-            if answer.lower() in ['y', 'yes']:
-                os.remove(args.output)
-                break
-            elif answer.lower() in ['n', 'no']:
-                print("Opération annulée.")
-                return
-            else:
-                print("Répondez par y (oui) ou n (non).")
-
-    combinations = generate_combinations(args.word, args.uppercase, args.max_upper)
-    contents = '\n'.join(combinations)
-    write_to_file(args.output, contents)
+    return num_combinations
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Generate combinations of a given string')
+    parser.add_argument('-w', '--word', type=str, required=True, help='The input string to generate combinations from')
+    parser.add_argument('--max-upper', type=int, default=2, help='The maximum number of uppercase letters to allow in the combinations')
+    parser.add_argument('--uppercase', type=str, default='', help='Comma-separated list of letters that can be uppercase')
+    args = parser.parse_args()
+
+    if os.path.exists('output.txt'):
+        response = input('Output file already exists. Do you want to continue and overwrite it? (y/n): ')
+        if response.lower() != 'y' and response.lower() != 'yes':
+            print('Exiting script...')
+            exit()
+
+    uppercase_letters = args.uppercase.lower().split(',')
+    word = args.word.lower()
+
+    num_combinations = generate_combinations(word, args.max_upper, uppercase_letters)
+    print(f'{num_combinations} combinations written to output.txt')
 
