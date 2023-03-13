@@ -1,55 +1,71 @@
-import itertools
 import argparse
+import itertools
 import os
 
-def generate_combinations(word, max_upper, uppercase_letters):
-    num_combinations = 0
-    with open("output.txt", "w") as f:
-        for i in range(max_upper + 1):
-            for combination in itertools.combinations(uppercase_letters, i):
-                for variation in itertools.product([False, True], repeat=len(word)):
-                    new_word = ''
-                    for j, letter in enumerate(word):
-                        if letter.lower() in uppercase_letters:
-                            if letter.lower() in combination:
-                                new_word += letter.upper()
-                            else:
-                                new_word += letter.lower()
-                        elif letter.lower() == 'o':
-                            if variation[j]:
-                                new_word += '0'
-                            else:
-                                new_word += 'o'
-                        elif letter.lower() == 'a':
-                            if variation[j]:
-                                new_word += '@'
-                            else:
-                                new_word += 'a'
-                        else:
-                            new_word += letter
-                        
-                    f.write(new_word + '\n')
-                    num_combinations += 1
+def generate_combinations(word, max_upper, uppercase_letters, uppercase_positions):
+    # Convert uppercase letters to lowercase in word
+    lowercase_word = word.lower()
 
-    return num_combinations
+    # Create a list to store the final combinations
+    combinations = []
 
+    # Create a list of all possible combinations of uppercase and lowercase letters
+    for num_upper in range(min(max_upper, len(word)) + 1):
+        for positions in itertools.combinations(range(len(word)), num_upper):
+            # Create a copy of lowercase_word to modify
+            current_word = list(lowercase_word)
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate combinations of a given string')
-    parser.add_argument('-w', '--word', type=str, required=True, help='The input string to generate combinations from')
-    parser.add_argument('--max-upper', type=int, default=2, help='The maximum number of uppercase letters to allow in the combinations')
-    parser.add_argument('--uppercase', type=str, default='', help='Comma-separated list of letters that can be uppercase')
+            # Convert the selected positions to uppercase
+            for pos in positions:
+                if pos in uppercase_positions:
+                    current_word[pos] = current_word[pos].upper()
+                elif current_word[pos] in uppercase_letters:
+                    current_word[pos] = current_word[pos].upper()
+
+            # Append the current combination to the list
+            combinations.append("".join(current_word))
+
+    return combinations
+
+if __name__ == "__main__":
+    # Create the argument parser
+    parser = argparse.ArgumentParser()
+
+    # Add the arguments
+    parser.add_argument("-w", "--word", type=str, help="the word to generate combinations from")
+    parser.add_argument("-mu", "--max-upper", type=int, default=1, help="the maximum number of uppercase letters allowed")
+    parser.add_argument("-up", "--uppercase-letters", type=str, default="", help="comma-separated list of uppercase letters")
+    parser.add_argument("-upp", "--uppercase-positions", type=str, default="", help="comma-separated list of positions where uppercase letters can be used")
+    parser.add_argument("-o", "--output", type=str, default="output.txt", help="the name of the output file")
+
+    # Parse the arguments
     args = parser.parse_args()
 
-    if os.path.exists('output.txt'):
-        response = input('Output file already exists. Do you want to continue and overwrite it? (y/n): ')
-        if response.lower() != 'y' and response.lower() != 'yes':
-            print('Exiting script...')
+    # Get the word
+    word = args.word
+
+    # Get the maximum number of uppercase letters allowed
+    max_upper = args.max_upper
+
+    # Get the uppercase letters
+    uppercase_letters = args.uppercase_letters.split(",")
+
+    # Get the uppercase positions
+    uppercase_positions = [int(p.strip()) - 1 for p in args.uppercase_positions.split(",") if p.strip().isdigit()]
+
+    # Generate the combinations
+    combinations = generate_combinations(word, max_upper, uppercase_letters, uppercase_positions)
+
+    # Check if the output file already exists
+    if os.path.isfile(args.output):
+        overwrite = input("The output file already exists. Do you want to overwrite it? (y/n) ")
+        if overwrite.lower() not in ["y", "yes"]:
             exit()
 
-    uppercase_letters = args.uppercase.lower().split(',')
-    word = args.word.lower()
+    # Write the combinations to the output file
+    with open(args.output, "w") as f:
+        for combination in combinations:
+            f.write(combination + "\n")
 
-    num_combinations = generate_combinations(word, args.max_upper, uppercase_letters)
-    print(f'{num_combinations} combinations written to output.txt')
+    print(f"{len(combinations)} combinations generated and written to {args.output}")
 
