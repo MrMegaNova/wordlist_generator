@@ -1,7 +1,12 @@
 import pyautogui
 import time
+ 
+qwerty = "qwamzmQWAMM§"
+azerty = "azq;w;AZQZW@"
 
-time.sleep(3)
+
+trans = str.maketrans(azerty, qwerty)
+time.sleep(5)
 
 filename = "output.txt"
 
@@ -12,8 +17,8 @@ wait_time = 1
 with open(filename, "r") as f:
     for line in f:
         # Supprime les caractères de fin de ligne
-        line = line.rstrip("\n")
-
+        #line = str(line.rstrip("\n"))
+        line = "PourtousLesMotsmotsdeP@sse0!"
         # Sélectionne le champ de texte
         #pyautogui.click(x, y)
 
@@ -25,8 +30,11 @@ with open(filename, "r") as f:
         # Attendre avant d'appuyer sur la touche Entrée
         time.sleep(0.01)
         
-        pyautogui.write(line)
+        passwd = line.translate(trans)
+        #passwd = line.translate(str.maketrans('azqwAZQW&é"\'(-è_çà)^$Mù,?;:!§1234567890','qwazQWAZ1234567890-[]:\'mM,./?!@#$%^&*()'))
+        pyautogui.write(passwd)
 
+        time.sleep(0.01)
         # Simule la pression de la touche Entrée
         pyautogui.press("enter")
 
