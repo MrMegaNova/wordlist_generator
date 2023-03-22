@@ -25,7 +25,7 @@ with open(filename, "r") as f:
         # Attendre avant d'appuyer sur la touche Entrée
         time.sleep(0.01)
         
-        pyautogui.hotkey("ctrlleft", "a")
+        pyautogui.hotkey("command", "a")
 
         # Attendre avant d'appuyer sur la touche Entrée
         time.sleep(0.01)
